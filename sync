@@ -3,7 +3,7 @@
 
 ###################!
 #PLEASE NOTE: THIS MAY NOT WORK CORRECTLY WITH FILENAMES CONTAINING SPACES
-###############!
+################!
 
 
 # Small bash script to automatically sync a local copy of a svn project
