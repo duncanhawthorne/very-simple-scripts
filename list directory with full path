@@ -1,0 +1,31 @@
+OLDIFS=$IFS
+IFS="
+"
+
+lookin() {
+for folder in $( ls ); do
+	(
+	if [ -d "$folder" ] ; 
+	then
+		echo `pwd`"/"$folder
+		cd $folder; i=`expr $i + 1`
+		lookin
+		cd .. ;	i=`expr $i - 1`
+	else
+		echo `pwd`"/"$folder
+	fi
+	)
+done
+}
+
+if [ -z $1 ]; 
+then 
+	cd ~/videos
+else
+	cd $1
+fi
+
+i=0 #must be kept outside of loop so it isnt reinitialized
+lookin
+
+IFS=$OLDIFS

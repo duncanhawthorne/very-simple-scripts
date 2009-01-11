@@ -1,0 +1,12 @@
+echo
+echo
+echo "BE CAREFUL, this is not a very clever script"
+echo "fails on various file types"
+echo
+echo
+
+sleep 2
+
+PASSWORD=`cat ~/.p`
+USER=`cat ~/.u`
+FOLDER+=$1; for file in $(ls "$FOLDER" | grep -v "~"); do echo "$file"; if echo "$file" | grep -v ".txt" | grep -v ".doc" | grep -v ".odt" | grep -v ".pdf"; then mv "$FOLDER"/"$file" "$FOLDER"/"$file".txt; file="$file".txt; fi; ~/source/gdatacopier-1.0.2/gdoc-cp.py --import --local "$FOLDER"/"$file" -u $USER -p $PASSWORD --title "$file"; done

@@ -1,0 +1,55 @@
+dont use orig, use orig q
+what happens if we are backing up something that is already a symlink
+control file c and d are teh same
+
+
+variables path to file = x
+first edit
+append line x to control file c	{
+				if deeper than one line before, just edit, dont do backup thing, dont append line (hmmm,  will try making symlink from it to itself, so works fine....no it doesn,t as will make new bad backup)
+				if less deep, works fine, remove other lines that are more deep
+				in same folder, makes no difference, may as well stop, so dont append
+				}
+cp x /home/system/x with no overwrite
+cp x /home/system/orig/x with no overwrite
+rm x (need recursive delete method) (try without sudo first so you dont wipe entire disk)
+ln -s /home/system/x x
+
+
+new install
+
+all:
+change orig folder to orig.1 ####action needed
+go through lines of control file !!!!!(install specific)!!!! one by one, as new variable y
+cp y /home/system/orig/y overwrite
+rm y (need recursive delete method) (try without sudo first so you dont wipe entire disk)
+ln -s /home/system/y y
+
+indiviually
+new control file d for each install, to be handled automatically
+see if "is it controlled called q*" exists, if not print, in !non! terminal "need control file"
+if q* exists, read first line of q*, which is q which is the name of the install
+now look at control file q
+variable z* is file/folder we are clicking on
+remove /home/system to make new variable z
+look in control file
+if different to anything in control file, append to control file
+if the same file as one already done, dont do cp to orig, then prompt in non terminal for override, if yes rm and link, 
+if new file is deeper, print in non terminal, already dealing with the custom file, this file has already been put into the system
+if new file is less deep: copy files to orig without overwrite, remove z (remove symlinks wont remove actually files in more deep directories, where the new files are) and link as normal, control file: remove lines that are more deep, add this line in.
+
+
+cp z /home/system/orig/y overwrite
+rm y (need recursive delete method) (try without sudo first so you dont wipe entire disk)
+ln -s /home/system/y y
+
+
+
+
+restore individual k* when you realise hex editing is stupid:
+scan through path deeper that where you are, and for each file replace associated edited file, with new "edited" file, which happens to be the original ,but is still in edit zone, ie
+turn k* to k
+then cp /home/system/orig/k /home/system/k with overwrites
+even works if K* is /home/system/orig (ie everything) mean k is " " so cp /home/system/orig /home/system with overwrites
+
+

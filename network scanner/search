@@ -1,0 +1,71 @@
+search="`zenity   --title  "Search" --entry --text "Enter Search"`"
+#search=South
+cd outputreadable
+(
+for share in $(ls); do
+	(
+	cd $share
+	##echo "<a href = smb://$share>"
+	##echo "</a>"
+	for sharedfolder in $(ls); do
+		(
+		if  ((cat $sharedfolder | grep "$search")>/dev/null)
+			then
+				(
+						echo "<a href = smb://$share/> $share </a>"
+						echo "<a href = smb://$share/$sharedfolder>       $share/$sharedfolder </a>"
+						cat $sharedfolder | grep "$search"
+						echo "<br>"
+				)
+		fi
+		)
+	done
+	
+	
+	cd ..
+	)
+done
+) > ../searchresults.html
+cd ..
+echo "done part 1"
+
+
+echo "<br><b>now searching individual terms</b><br>" >> searchresults.html
+#cd outputreadable
+for searchterm in $(echo $search); do
+	(
+	cd outputreadable
+	(
+	for share in $(ls); do
+		(
+		cd $share
+		#echo "<a href = smb://$share>"
+			for sharedfolder in $(ls); do
+				(
+				if  ((cat $sharedfolder | grep "$searchterm" | grep -v "$search")>/dev/null)
+					then
+						(
+						echo "<a href = smb://$share/> $share </a>"
+						echo "<a href = smb://$share/$sharedfolder>       $share/$sharedfolder </a>"
+						cat $sharedfolder | grep "$searchterm" | grep -v "$search"
+						echo "<br>"
+						)
+				fi
+				)
+			done
+		#echo "</a>"
+	
+		cd ..
+		)
+	done
+	) >> ../searchresults.html
+	cd ..
+	)
+done
+echo "done part 2"
+X=1
+lines=`wc -l searchresults.html | head -c-19`
+rm bob.html > /dev/null 2>&1
+while [ $X -le $lines ]; do echo "`(cat searchresults.html | head -n"$X" | tail -n1)` <br>">>bob.html ; X=$((X+1)); done
+echo "done part 3"
+xdg-open bob.html

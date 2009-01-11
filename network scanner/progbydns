@@ -1,0 +1,20 @@
+mkdir outputbydns
+cd outputbydns
+for workgroup in $( gvfs-ls smb:// ); do 
+	(
+	for computer in $( gvfs-ls smb://"$workgroup" ); do 
+		(
+		mkdir "$computer"
+		for folder in $( gvfs-ls smb://"$computer" ); do
+			(
+			if ((sleep 4 && pkill gvfs-mount) & gvfs-mount smb://"$computer"/"$folder"); then echo 1 > /dev/null ; else echo 1 > /dev/null ; fi
+			sleep 4
+			gvfs-tree smb://"$computer"/"$folder" > "$computer"/"$folder".txt
+			gvfs-mount -u smb://"$computer"/"$folder"
+			)
+		done
+		)
+	done
+	)
+done
+cd ..

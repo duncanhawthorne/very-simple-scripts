@@ -1,0 +1,100 @@
+##get hostname from ip:
+## (for word in $( host $computer ); do echo $word; done) | tail -n1
+
+scanrange() {
+Z=$j
+Zlimit=`expr $j + 15`
+#while [ $Z -le $Zlimit ]; do  printf "scan $h.$i.$Z & "; Z=$((Z+1)); done; echo :
+
+Z=$j
+Zlimit=`expr $j + 15`
+#`while [ $Z -le $Zlimit ]; do  printf "scan $h.$i.$Z & "; Z=$((Z+1)); done; printf :`
+
+
+scan $h.$i.`expr $j + 0` & scan $h.$i.`expr $j + 1` & scan $h.$i.`expr $j + 2` & scan $h.$i.`expr $j + 3` & scan $h.$i.`expr $j + 4` & scan $h.$i.`expr $j + 5` & scan $h.$i.`expr $j + 6` & scan $h.$i.`expr $j + 7` & scan $h.$i.`expr $j + 8` & scan $h.$i.`expr $j + 9` & scan $h.$i.`expr $j + 10` & scan $h.$i.`expr $j + 11` & scan $h.$i.`expr $j + 12` & scan $h.$i.`expr $j + 13` & scan $h.$i.`expr $j + 14` & scan $h.$i.`expr $j + 15` & :
+
+}
+
+
+scan() {
+		computer="$1"
+		#echo computer is $computer
+		if ( (ls | grep "$computer". ) > /dev/null)
+		then
+			echo checked $computer before
+		else
+			(
+			#echo "checking ip: $computer"
+			if ( ping -w 1 -c 1 $computer | grep "1 received") > /dev/null
+			then	
+				(
+				#echo "ip      $computer online, now scanning:"
+				if ( (gvfs-ls smb://$computer | grep *) > /dev/null)
+					then 
+						(
+						mkdir "$computer".
+						ln -s ../output/"$computer". ../outputreadable/`((for word in $( host $computer ); do echo $word; done) | tail -n1)`
+						echo "ip      $computer online, contains folders:"
+						gvfs-ls smb://$computer
+						)
+					else 
+						(
+						echo "noshare" > "$computer".noshare
+						echo "ip      $computer online but sharing nothing"
+						) 
+				fi
+				OLDIFS=$IFS
+IFS="
+"
+				#the above make the for loop go through lines instead of through words by changing the internal field seperator
+				for folder in $( gvfs-ls smb://"$computer" ); do
+							(
+							echo "scanning folder: $folder"
+							((sleep 2 && pkill gvfs-mount ) & gvfs-mount smb://"$computer"/"$folder"  > /dev/null 2>&1) #can be made with no killing by passing standard in
+							sleep 2
+							gvfs-tree smb://"$computer"/"$folder" > "$computer"./"$folder"
+							gvfs-mount -u smb://"$computer"/"$folder" > /dev/null
+							)
+				done
+				IFS=$OLDIFS
+				)
+			else
+				(
+				echo "ip      $computer offline"
+				#((pkill zenity && (zenity --notification --text "ip      $computer offline" > /dev/null 2>&1)) > /dev/null 2>&1) & 
+				echo "ipoff" > "$computer".ipoff
+				)
+			fi
+			)
+		fi
+}
+
+
+mkdir outputreadable > /dev/null 2>&1
+mkdir output  > /dev/null 2>&1
+cd output
+#if (zenity  --question --title "Alert"  --text "Do you want to rescan previously offline ip adresses?") 
+#	then (echo "deleting old cache" && for folder in $(ls | grep ipoff ); do rm  $folder; done)
+#fi
+
+X=0
+
+
+
+
+
+#set -x
+h=172.31
+for i in $(echo "57 58 59 60 65"); do
+(
+	for j in $(while [ $X -le 240 ]; do echo $X; X=$((X+16)); done); do ###this is wrong!!! have X without a dollar sign
+		(
+		scanrange
+		)
+	done
+)
+done
+cd ..
+
+
+

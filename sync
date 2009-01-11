@@ -1,0 +1,84 @@
+#!/bin/bash
+
+
+###################!
+#PLEASE NOTE: THIS MAY NOT WORK CORRECTLY WITH FILENAMES CONTAINING SPACES
+###############!
+
+
+# Small bash script to automatically sync a local copy of a svn project
+# to the repository. Locally deleted files will be removed from the 
+# repository and locally added files will be added to the repository!
+
+while :
+do
+	if (ping -c 1 google.com | grep "1 received" > /dev/null)
+	then
+		break
+	fi
+sleep 3
+done
+echo "connected to internet"
+
+
+
+svncmd=`which svn`
+#svncmd="echo svn"   # uncomment this line for debugging
+
+if ([ -z $1 ]); then $svncmd up; else echo "just doing upload"; fi #necessary if you delete files..
+
+dirs="."
+modifiedDirs=
+
+uid=`id -u`
+
+IFS="
+"
+
+for dir in $dirs
+do
+    echo "cheking $dir for modifications ..."
+
+    if [ -d $dir ]; then
+      #svn stat $dir /
+      for svnline in `svn stat $dir/ | sed 's/      /,/g'`
+      do
+         
+          svnfile=`echo $svnline | cut -d "," -f 2`
+          #echo this is svnline:
+          #echo $svnline
+          
+          #echo this is svnfile:
+          #echo $svnfile
+                    
+          svnstatus=`echo $svnline | cut -d "," -f 1`
+        
+          case "$svnstatus" in
+              "?")
+                echo "adding $svnfile ..." 
+                $svncmd add "$svnfile"
+              ;;
+              "!")
+                echo "deleting $svnfile ..." 
+                 $svncmd del "$svnfile"
+              ;;
+              "M")
+                echo "$svnfile has modifications..." 
+              ;;
+          esac
+          modifiedDirs="$dir/ $modifiedDirs"
+      done
+    
+    else
+        echo "$dir could not be found."
+    fi
+
+done
+
+IFS=" "
+
+if [ -n "$modifiedDirs" ]; then 
+    echo "commiting all changes..."
+    $svncmd ci -m 'automatic repository sync' $modifiedDirs
+fi
+

@@ -1,0 +1,1 @@
+PASSWORD=`cat ~/.p`; USER=`cat ~/.u`; FOLDER=~/backup/passive-pull/gdocs-`date`; mkdir "$FOLDER"; ~/source/gdatacopier-1.0.2/gdoc-cp.py --export txt --local "$FOLDER" --google-id all -u $USER -p $PASSWORD
