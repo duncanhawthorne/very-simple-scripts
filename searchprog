@@ -23,7 +23,7 @@ done
 
 if [ -z $1 ]; 
 then 
-	cd ~/videos
+	cd .
 else
 	cd $1
 fi
