@@ -1,8 +1,0 @@
-#echo $@
-#$@
-
-
-#sadly the normal `echo $@` trick doesnt work 
-echo $@ > /tmp/dddrun
-chmod +x /tmp/dddrun
-/tmp/dddrun
