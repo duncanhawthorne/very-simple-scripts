@@ -1,84 +1,48 @@
-#!/bin/bash
+#!/usr/bin/env python
+from __future__ import division #to give true division
+import os, sys
 
+"""
+Subverion sync script, for automatically issuing the correct subversion 
+commands after adding, deleting, moving, modifying files.
+Also has support for moving folders in subversion, by deleting the old 
+.svn directories, in the folder in its new position
+"""
 
-###################!
-#PLEASE NOTE: THIS MAY NOT WORK CORRECTLY WITH FILENAMES CONTAINING SPACES
-################!
+def bash(command):		
+	return os.popen(command).read().split("\n")[:-1]
+	
+directory = "."
 
+svn_stat_output = bash("svn stat "+directory)
+print svn_stat_output
 
-# Small bash script to automatically sync a local copy of a svn project
-# to the repository. Locally deleted files will be removed from the 
-# repository and locally added files will be added to the repository!
+if len(sys.argv) == 1:
+	os.system('svn up')
+else:
+	if sys.argv[1] == "--upload":
+		print "just doing upload"	
 
-while :
-do
-	if (ping -c 1 google.com | grep "1 received" > /dev/null)
-	then
-		break
-	fi
-sleep 3
-done
-echo "connected to internet"
-
-
-
-svncmd=`which svn`
-#svncmd="echo svn"   # uncomment this line for debugging
-
-if ([ -z $1 ]); then $svncmd up; else echo "just doing upload"; fi #necessary if you delete files..
-
-dirs="."
-modifiedDirs=
-
-uid=`id -u`
-
-IFS="
-"
-
-for dir in $dirs
-do
-    echo "cheking $dir for modifications ..."
-
-    if [ -d $dir ]; then
-      #svn stat $dir /
-      for svnline in `svn stat $dir/ | sed 's/      /,/g'`
-      do
-         
-          svnfile=`echo $svnline | cut -d "," -f 2`
-          #echo this is svnline:
-          #echo $svnline
-          
-          #echo this is svnfile:
-          #echo $svnfile
-                    
-          svnstatus=`echo $svnline | cut -d "," -f 1`
-        
-          case "$svnstatus" in
-              "?")
-                echo "adding $svnfile ..." 
-                $svncmd add "$svnfile"
-              ;;
-              "!")
-                echo "deleting $svnfile ..." 
-                 $svncmd del "$svnfile"
-              ;;
-              "M")
-                echo "$svnfile has modifications..." 
-              ;;
-          esac
-          modifiedDirs="$dir/ $modifiedDirs"
-      done
-    
-    else
-        echo "$dir could not be found."
-    fi
-
-done
-
-IFS=" "
-
-if [ -n "$modifiedDirs" ]; then 
-    echo "commiting all changes..."
-    $svncmd ci -m 'automatic repository sync' $modifiedDirs
-fi
-
+for line in svn_stat_output:
+	status, filename = line.split("      ")
+	print status, filename
+	if status == "!" or status == "D":
+		print "deleting "+filename
+		print bash('svn del "'+filename+'"')
+	elif status == "?":
+		print "adding "+filename
+		output = bash('svn add "'+filename+'" 2>&1')
+		print output
+		if "is already under version control" in output[0]:
+			print "you moved a folder "+filename
+			list_of_svn_dirs = []
+			for root, folder, files  in os.walk(filename):
+				if root[-4:] == ".svn":
+					list_of_svn_dirs.append(root)
+			for folder in list_of_svn_dirs:
+				bash("rm -r -f \""+folder+"\"")
+			print bash('svn add "'+filename+'" 2>&1')
+	elif status == "M":
+		print filename+" has modifications"
+print "commiting, this may take a while"
+os.system("svn commit -m 'automatic repository sync' "+directory)#not bash(), as need to see feedback
