@@ -8,16 +8,12 @@ sys.setrecursionlimit(200000)
 
 cached_results  = {}
 def cached(function, args):
-	if type(args) != tuple:
-		print "you need to pass a tuple, if you want to pass one arg, pass (bob,)"
-		assert type(args) == tuple
-	try:
+	assert type(args) == tuple, "you need to pass a tuple, if you want to pass one arg, pass (arg,)"
+	if function in cached_results and args in cached_results[function]:
 		return cached_results[function][args]
-	except:
+	else:
 		answer = function(*args)
-		try:
-			cached_results[function]
-		except:
+		if not function in cached_results:
 			cached_results[function] = {}
 		cached_results[function][args] = answer
 		return answer
@@ -32,7 +28,7 @@ def fib_fast(n):
 	if n == 1 or n == 2:
 		return 1
 	else:
-		return cached(fib_fast, (n-1)) + cached(fib_fast, (n-2)) 
+		return cached(fib_fast, (n-1,)) + cached(fib_fast, (n-2,)) 
 
 if __name__ == "__main__":
 	print fib_fast(35)
