@@ -2,7 +2,7 @@
 Script to speed up "independent" functions by caching results. Independent in the sense that gets all information from the arguments, gives all information back through return values.
 '''
 
-from __future__ import division
+from __future__ import division,  print_function
 import sys
 sys.setrecursionlimit(200000)
 
@@ -20,52 +20,58 @@ def cached(function, args):
 		cached_results[function][args] = answer
 		return answer
 
-decode_list = {"current":None, "orig":None}
-		
-def bob(args):
-	#print "bob", args
-	return cached(decode_list["orig"], (args,))
-		
-def cached_seamless(function, args):
+def cached_seamless(*arguments):
 	'''
-	This is not threadsafe
+	This is not safe to be called multiple time until it is finished
 	'''
-	#print function, args
 	
+	try: #should be if has attribute
+		cached_seamless.first_run #check if this is defined
+		#second run
+		assert cached_seamless.first_run == False
+		args, = arguments #so we are just getting args
+	except:
+		cached_seamless.first_run = True #first run, 
+		function, args = arguments #so we are getting a function and argument
 	
-	orig_function = function
+	if cached_seamless.first_run == True:
 	
+		#remember the original function for later
+		cached_seamless.orig_function = function
 	
+		this_function_name = "cached_seamless"
 	
-	#print "cacehd_seamless", function, args
-	decode_list["orig"] = function
+		#as the external function remains unchanged, 
+		#we need to change the function it calls to be this one
+		#first find out that functions name	
+		for item in globals():
+			if not item == this_function_name:
+				if globals()[item] == function:
+					external_function = item
 	
-	#print locals()
-	
-	for item in globals():
-		if not item == "bob":
-			if globals()[item] == function:
-				external_function = item
-	
-	exec external_function+" = bob" in globals()
-	
-	answer =  cached(bob, (n,))
-	
-	exec external_function+" = decode_list['orig']" in globals()
-	#now reset the function back again
-	
-	#TODO
-	
-	return answer
+		#now set its value globally to actually refer to this function
+		exec(external_function+" = "+this_function_name) in globals()
+
+		#so that next time it wont do the setup again, 
+		#change the first_run to be False
+		cached_seamless.first_run = False	
+		answer =  cached(cached_seamless, (n,)) #THIS IS THE MEAT
 	
 
+		#now reset the function back again
+		exec(external_function+" = cached_seamless.orig_function") in globals()
+		del cached_seamless.first_run
+		del cached_seamless.orig_function
 	
-	
-	
-		
+		#this is the final exit from the function
+		return answer
+
+	else:
+		#the recursive function will get here lots of times
+		#and pass the arguments straight over to the cached function
+		return cached(cached_seamless.orig_function, (args,))	
 	
 def fib_slow(n):
-	#print("running fib_slow")
 	if n == 1 or n == 2:
 		return 1
 	else:
@@ -100,20 +106,17 @@ def fib_with_cache(n):
 	
 
 if __name__ == "__main__":
-	n = 70
+	n = 35
+
+	cached_results  = {} #just put this here to show if starting from scratch
+	print(cached_seamless(fib_slow, (n,)))
 	
-	#print globals()
-	
-	print cached_seamless(fib_slow, (10,))
-	print cached_seamless(fib_slow, (n,))
-	
-	print fib_slow(n)
-	
-	#print cached(bob, (n,))
-	quit()
-	
-	
+	cached_results  = {} #just put this here to show if starting from scratch
 	print(fib_fast(n))
+	
+	cached_results  = {} #just put this here to show if starting from scratch
 	print(fib_with_cache(n))
+	
+	#now for the slow one
 	print(fib_slow(n))
 
