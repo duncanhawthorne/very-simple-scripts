@@ -1,17 +1,5 @@
-#!/usr/bin/env python
-
-#    Copyright (C) 2006  Andrew Straw  <strawman@astraw.com>
-#
-#    This program can be distributed under the terms of the GNU LGPL.
-#    See the file COPYING.
-#
-
 import os, stat, errno
-# pull in some spaghetti to make this stuff work without fuse-py being installed
-try:
-    import _find_fuse_parts
-except ImportError:
-    pass
+
 import fuse
 from fuse import Fuse
 
@@ -32,10 +20,6 @@ a = bash("dpkg --get-selections")
 for item in a:
     if not "deinstall" in item:
         installed_apps.append("/"+item.split()[0])
-
-if not hasattr(fuse, '__version__'):
-    raise RuntimeError, \
-        "your fuse-py doesn't know of fuse.__version__, probably it's too old."
 
 fuse.fuse_python_api = (0, 2)
 
