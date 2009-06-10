@@ -106,7 +106,7 @@ def fib_with_cache(n):
 	
 
 if __name__ == "__main__":
-	n = 35
+	n = 2000
 
 	cached_results  = {} #just put this here to show if starting from scratch
 	print(cached_seamless(fib_slow, (n,)))
